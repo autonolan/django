@@ -12,7 +12,7 @@ class Scheduler:
         await self.try_assign_work()
     
     async def unregister_worker(self, id):
-        state.worker_Status.pop(id, None)
+        state.worker_status.pop(id, None)
     
     async def worker_finished(self, id):
         state.worker_status[id]["busy"] = False
@@ -20,10 +20,12 @@ class Scheduler:
     
     async def try_assign_work(self):
         idle_workers = [w for w, info in state.worker_status.items() if not info["busy"]]
+        print(f"Idle workers: {idle_workers}")
         if not idle_workers:
             return
         
         order = await database_sync_to_async(lambda: Order.objects.filter(status='pending').exclude(id__in=state.active_orders).first())()
+        print(f"Found order: {order}")
         if not order:
             return
         id = idle_workers[0]
